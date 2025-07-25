@@ -1,7 +1,7 @@
 import requests
 
 # Chave da API
-RIOT_API_KEY = "RGAPI-ce1d55d5-3533-4993-993b-1be39de97514"
+from config import RIOT_API_KEY
 
 # Região base da API
 REGIAO = "br1"
