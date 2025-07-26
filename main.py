@@ -1,6 +1,7 @@
 from api_handler import (
     get_account_by_riot_id,
-    get_last_matches_stats
+    get_last_matches_stats,
+    calcular_medias
 )
 
 def main():
@@ -34,6 +35,16 @@ def main():
             print("Não foi possível obter estatísticas das partidas.")
     else:
         print("Conta Riot não encontrada.")
+    # Exibe as médias após mostrar as 5 partidas
+    medias = calcular_medias(estatisticas)
+    print("\n=== MÉDIAS GERAIS ===")
+    for chave, valor in medias.items():
+        if "duration" in chave:
+            print(f"- {chave.capitalize()}: {valor:.1f} min")
+        elif "%" in chave:
+            print(f"- {chave}: {valor:.1f}%")
+        else:
+            print(f"- {chave.capitalize()}: {valor:.1f}")
 
 if __name__ == "__main__":
     main()

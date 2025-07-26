@@ -26,6 +26,6 @@ O foco está em tornar a análise de desempenho mais acessível, clara e útil p
 
 4. seaborn
 
-5. pandas (opcional, para tratamento de dados estruturados)
+5. pandas
 
 6. API oficial da Riot Games

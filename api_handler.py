@@ -97,3 +97,27 @@ def get_last_matches_stats(puuid, count=5):
                 if player_stats:
                     stats.append(player_stats)
     return stats
+
+def calcular_medias(stats):
+    """
+    Calcula médias de desempenho com base nas partidas.
+    """
+    if not stats:
+        print("Nenhuma estatística disponível para calcular médias.")
+        return {}
+
+    total_kills = sum(s["kills"] for s in stats)
+    total_deaths = sum(s["deaths"] for s in stats)
+    total_assists = sum(s["assists"] for s in stats)
+    total_duration = sum(s["duration"] for s in stats)
+    total_wins = sum(1 for s in stats if s["win"])
+
+    count = len(stats)
+    medias = {
+        "kills": total_kills / count,
+        "deaths": total_deaths / count,
+        "assists": total_assists / count,
+        "duration": total_duration / count,
+        "taxa_vitorias (%)": (total_wins / count) * 100
+    }
+    return medias
