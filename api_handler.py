@@ -59,3 +59,41 @@ def get_match_details(match_id):
     else:
         print(f"[Match Details] Erro {response.status_code} - {response.text}")
         return None
+    
+# Extrai as estatísticas do jogador a partir dos dados da partida
+    
+def get_player_stats_from_match(match_data, puuid):
+    try:
+        info = match_data["info"]
+        participants = info["participants"]
+        game_duration = info["gameDuration"] // 60
+        game_mode = info["gameMode"]
+
+        for p in participants:
+            if p["puuid"] == puuid:
+                return {
+                    "champion": p["championName"],
+                    "lane": p["lane"],
+                    "kills": p["kills"],
+                    "deaths": p["deaths"],
+                    "assists": p["assists"],
+                    "win": p["win"],
+                    "duration": game_duration,
+                    "game_mode": game_mode
+                }
+    except Exception as e:
+        print(f"[Match Parse] Erro ao extrair dados do jogador: {e}")
+        return None
+
+def get_last_matches_stats(puuid, count=5):
+    match_ids = get_match_ids_by_puuid(puuid, count=count)
+    stats = []
+
+    if match_ids:
+        for match_id in match_ids:
+            match_data = get_match_details(match_id)
+            if match_data:
+                player_stats = get_player_stats_from_match(match_data, puuid)
+                if player_stats:
+                    stats.append(player_stats)
+    return stats
