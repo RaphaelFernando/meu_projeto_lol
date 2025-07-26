@@ -3,6 +3,7 @@ from api_handler import (
     get_last_matches_stats,
     calcular_medias
 )
+from graficos import plot_kda_bar, plot_resultados_pizza
 
 def main():
     print("=== Consulta de Desempenho no League of Legends ===\n")
@@ -45,6 +46,9 @@ def main():
             print(f"- {chave}: {valor:.1f}%")
         else:
             print(f"- {chave.capitalize()}: {valor:.1f}")
+    print("\n=== VISUALIZAÇÃO GRÁFICA ===")
+    plot_kda_bar(estatisticas)
+    plot_resultados_pizza(estatisticas)
 
 if __name__ == "__main__":
     main()
