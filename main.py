@@ -1,19 +1,20 @@
-from api_handler import get_summoner_info
+from api_handler import get_account_by_riot_id
 
 def main():
-    print("=== Analisador de Desempenho - League of Legends ===")
-    summoner_name = input("Digite o nome do invocador: ")
-
-    # Chama a função para buscar os dados da Riot
-    data = get_summoner_info(summoner_name)
-
+    print("=== Consulta de Conta Riot (Riot ID) ===")
+    
+    game_name = input("Digite o nome do Riot ID (ex: Mugetsu): ")
+    tag = input("Digite a tag do Riot ID (ex: Luar): ")
+    
+    data = get_account_by_riot_id(game_name, tag)
+    
     if data:
-        print("\nDados encontrados:")
-        print(f"Nome: {data['name']}")
-        print(f"Nível: {data['summonerLevel']}")
-        print(f"ID do Invocador: {data['id']}")
+        print("\n--- Dados da Conta Riot ---")
+        print(f"Game Name: {data['gameName']}")
+        print(f"Tag Line: {data['tagLine']}")
+        print(f"PUUID: {data['puuid']}")
     else:
-        print("Não foi possível encontrar o invocador. Verifique o nome e tente novamente.")
+        print("Conta Riot não encontrada ou erro na requisição.")
 
 if __name__ == "__main__":
     main()
