@@ -32,9 +32,5 @@ def main():
     observacoes = gerar_observacoes(medias)
     gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
 
-
-
-
-
 if __name__ == "__main__":
     main()
