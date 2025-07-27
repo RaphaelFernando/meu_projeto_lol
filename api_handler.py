@@ -85,7 +85,7 @@ def get_player_stats_from_match(match_data, puuid):
         print(f"[Match Parse] Erro ao extrair dados do jogador: {e}")
         return None
 
-def get_last_matches_stats(puuid, count=5):
+def get_last_matches_stats(puuid, count=20):
     match_ids = get_match_ids_by_puuid(puuid, count=count)
     stats = []
 

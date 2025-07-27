@@ -1,30 +1,29 @@
 import matplotlib.pyplot as plt
+import streamlit as st
 
-def plot_kda_bar(estatisticas):
-    partidas = [f"P{i+1}" for i in range(len(estatisticas))]
-    kills = [p["kills"] for p in estatisticas]
-    deaths = [p["deaths"] for p in estatisticas]
-    assists = [p["assists"] for p in estatisticas]
+def plot_kda_bar(partidas):
+    partidas_labels = [f"P{i+1}" for i in range(len(partidas))]
+    kda_values = [
+        round((p['kills'] + p['assists']) / max(1, p['deaths']), 2)
+        for p in partidas
+    ]
 
-    x = range(len(partidas))
-    plt.figure(figsize=(10, 6))
-    plt.bar(x, kills, width=0.2, label="Kills", align='center')
-    plt.bar([i + 0.2 for i in x], deaths, width=0.2, label="Deaths")
-    plt.bar([i + 0.4 for i in x], assists, width=0.2, label="Assists")
+    fig, ax = plt.subplots(figsize=(4, 4))  # Ajuste o tamanho aqui
+    ax.bar(partidas_labels, kda_values, color='skyblue')
+    ax.set_title("KDA por Partida")
+    ax.set_ylabel("KDA")
+    ax.set_ylim(0, max(kda_values) + 1)
 
-    plt.xticks([i + 0.2 for i in x], partidas)
-    plt.ylabel("Quantidade")
-    plt.title("Desempenho por Partida")
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    st.pyplot(fig)
 
-def plot_resultados_pizza(estatisticas):
-    vitorias = sum(1 for p in estatisticas if p["win"])
-    derrotas = len(estatisticas) - vitorias
 
-    plt.figure(figsize=(6, 6))
-    plt.pie([vitorias, derrotas], labels=["Vitórias", "Derrotas"],
-            autopct="%1.1f%%", colors=["#4CAF50", "#F44336"], startangle=90)
-    plt.title("Resultado das Últimas Partidas")
-    plt.show()
+
+def plot_resultados_pizza(partidas):
+    vitorias = sum(1 for p in partidas if p["win"])
+    derrotas = len(partidas) - vitorias
+
+    fig, ax = plt.subplots(figsize=(4, 4))  # <-- ajuste aqui também
+    ax.pie([vitorias, derrotas], labels=["Vitórias", "Derrotas"], autopct="%1.1f%%", colors=["green", "red"])
+    ax.set_title("Distribuição de Resultados")
+
+    st.pyplot(fig)

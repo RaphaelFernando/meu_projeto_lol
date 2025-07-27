@@ -4,7 +4,7 @@ from api_handler import get_account_by_riot_id, get_last_matches_stats
 from processamento import calcular_estatisticas
 from exibicao import exibir_partidas, exibir_medias
 from graficos import plot_kda_bar, plot_resultados_pizza
-from utils import gerar_relatorio_pdf, gerar_observacoes
+from utils import gerar_relatorio, gerar_observacoes
 
 st.set_page_config(page_title="Analisador de Desempenho - LoL", layout="wide")
 
@@ -29,7 +29,7 @@ if st.button("Analisar"):
             if not estatisticas:
                 st.error(" Não foi possível obter estatísticas.")
             else:
-                st.subheader(" Estatísticas das 5 Últimas Partidas")
+                st.subheader(" Estatísticas das Últimas Partidas")
                 exibir_partidas(estatisticas)
 
                 medias = calcular_estatisticas(estatisticas)
@@ -45,9 +45,14 @@ if st.button("Analisar"):
                 for obs in observacoes:
                     st.write(f"- {obs}")
 
-                # Gera e retorna o caminho do PDF
-                caminho_completo, nome_arquivo = gerar_relatorio_pdf(f"{game_name}#{tag}", medias, observacoes)
+                # Gera o relatório .txt e retorna o caminho
+                caminho_completo = gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
 
-                # Botão de download do relatório
+                # Botão de download do relatório .txt
                 with open(caminho_completo, "rb") as f:
-                    st.download_button(" Baixar relatório em PDF", f, file_name=nome_arquivo, mime="application/pdf")
+                    st.download_button(
+                        label="📥 Baixar Relatório (.txt)",
+                        data=f,
+                        file_name=caminho_completo.split("\\")[-1],
+                        mime="text/plain"
+                    )
