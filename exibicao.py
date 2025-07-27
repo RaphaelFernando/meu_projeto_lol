@@ -1,5 +1,6 @@
 def exibir_partidas(estatisticas):
     print("\n--- Estatísticas das 5 Últimas Partidas ---")
+    print(estatisticas)
     for i, partida in enumerate(estatisticas, 1):
         print(f"\nPartida {i}:")
         print(f"Campeão: {partida['champion']}")
