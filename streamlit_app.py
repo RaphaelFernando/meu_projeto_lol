@@ -29,16 +29,24 @@ if st.button("Analisar"):
             if not estatisticas:
                 st.error(" Não foi possível obter estatísticas.")
             else:
-                st.subheader(" Estatísticas das Últimas Partidas")
-                exibir_partidas(estatisticas)
-
                 medias = calcular_estatisticas(estatisticas)
                 st.subheader(" Estatísticas Consolidadas")
                 exibir_medias(medias)
+                
+                st.subheader(" Estatísticas das Últimas Partidas")
+                exibir_partidas(estatisticas)
+
 
                 st.subheader(" Gráficos de Desempenho")
-                plot_kda_bar(estatisticas)
-                plot_resultados_pizza(estatisticas)
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    plot_kda_bar(estatisticas)
+
+                with col2:
+                    plot_resultados_pizza(estatisticas)
+
 
                 st.subheader(" Análise Automática")
                 observacoes = gerar_observacoes(medias)
