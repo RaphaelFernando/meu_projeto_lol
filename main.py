@@ -3,6 +3,8 @@ from api_handler import get_account_by_riot_id, get_last_matches_stats
 from processamento import calcular_estatisticas
 from exibicao import exibir_partidas, exibir_medias
 from graficos import plot_kda_bar, plot_resultados_pizza
+from utils import gerar_relatorio, gerar_observacoes
+
 
 def main():
     game_name, tag = solicitar_riot_id()
@@ -26,6 +28,13 @@ def main():
     print("\n=== VISUALIZAÇÃO GRÁFICA ===")
     plot_kda_bar(estatisticas)
     plot_resultados_pizza(estatisticas)
+    
+    observacoes = gerar_observacoes(medias)
+    gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
+
+
+
+
 
 if __name__ == "__main__":
     main()
