@@ -6,7 +6,7 @@ from graficos import plot_kda_bar, plot_resultados_pizza
 from utils import gerar_relatorio, gerar_observacoes
 
 def main():
-    st.title("Consulta de Desempenho no League of Legends 🎮")
+    st.title("Consulta de Desempenho no League of Legends")
 
     with st.form("form_riot_id"):
         game_name = st.text_input("Digite o nome do Riot ID (ex: Mugetsu)")
@@ -20,7 +20,7 @@ def main():
             st.error("Conta Riot não encontrada.")
             return
 
-        puuid = conta["puuid"]  # Utilizado internamente, mas não exibido
+        puuid = conta["puuid"]  # Oculto para o usuário, usado internamente
 
         estatisticas = get_last_matches_stats(puuid)
 
@@ -28,23 +28,24 @@ def main():
             st.warning("Não foi possível obter estatísticas.")
             return
 
-        st.subheader("📊 Estatísticas das últimas partidas")
-        exibir_partidas(estatisticas)
-
+        # Calcula as médias primeiro
         medias = calcular_estatisticas(estatisticas)
 
-        st.subheader("📈 Médias de desempenho")
+        # Exibe as médias antes do histórico
+        st.subheader("Médias de desempenho")
         exibir_medias(medias)
 
-        st.subheader("📉 Visualização Gráfica")
+        st.subheader("Estatísticas das últimas partidas")
+        exibir_partidas(estatisticas)
+
+        st.subheader("Visualização Gráfica")
         plot_kda_bar(estatisticas)
         plot_resultados_pizza(estatisticas)
 
         observacoes = gerar_observacoes(medias)
 
-        if st.button("📄 Gerar relatório em .txt"):
-            gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
-            st.success("Relatório gerado com sucesso!")
+        # Opcional: salvar relatório
+        gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
 
 if __name__ == "__main__":
     main()
