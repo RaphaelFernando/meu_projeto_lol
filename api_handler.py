@@ -1,6 +1,7 @@
 import requests
 from config import RIOT_API_KEY
 
+
 # Regiões específicas para cada API
 SUMMONER_REGION = "br1"
 ACCOUNT_REGION = "americas"
