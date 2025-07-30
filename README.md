@@ -16,7 +16,7 @@ O foco está em tornar a análise de desempenho mais acessível, clara e útil p
 
 5. Interface simples para visualização das análises
 
-![Preview](ScreenShots)
+![Preview](ScreenShots/home.png)
 
 # Tecnologias e ferramentas utilizadas
 
