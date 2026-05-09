@@ -1,0 +1,12 @@
+ACCOUNT_BY_RIOT_ID = "https://{routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
+MATCH_BY_ID = "https://{routing}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+MATCH_TIMELINE_BY_ID = "https://{routing}.api.riotgames.com/lol/match/v5/matches/{match_id}/timeline"
+MATCH_IDS_BY_PUUID = "https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
+
+SUMMONER_BY_PUUID = "https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}"
+SUMMONER_BY_NAME = "https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
+LEAGUE_BY_SUMMONER_ID = "https://{region}.api.riotgames.com/lol/league/v4/entries/by-summoner/{encrypted_summoner_id}"
+LEAGUE_BY_PUUID = "https://{region}.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}"
+CHAMPION_MASTERY_BY_PUUID = "https://{region}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}"
+ACTIVE_GAME = "https://{region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{encrypted_summoner_id}"
+CHAMPION_ROTATIONS = "https://{region}.api.riotgames.com/lol/platform/v3/champion-rotations"

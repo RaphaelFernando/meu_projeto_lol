@@ -1,17 +1,23 @@
 import streamlit as st
+
 from api_handler import (
-    get_account_by_riot_id,
-    get_last_matches_stats,
-    get_encrypted_summoner_id_and_platform_hint,  # << usa matchId para sugerir plataforma
-    find_platform_by_summoner_id,
-    get_ranked_entries,
-    probe_rank_across_platforms,                   # debug opcional
     PLATFORMS,
+    get_latest_match_summary,
+    get_ranked_entries_by_puuid,
+    get_recent_match_summaries,
+    probe_rank_across_platforms,
 )
+from exibicao import exibir_medias
 from processamento import calcular_estatisticas
-from exibicao import exibir_partidas, exibir_medias
-from graficos import plot_kda_bar, plot_resultados_pizza
-from utils import gerar_relatorio, gerar_observacoes
+from riot.exceptions import (
+    RiotApiError,
+    RiotAuthenticationError,
+    RiotForbiddenError,
+    RiotNotFoundError,
+    RiotRateLimitError,
+    RiotServerError,
+    RiotTimeoutError,
+)
 
 
 def render_rank_card(col, title, entry):
@@ -23,12 +29,84 @@ def render_rank_card(col, title, entry):
             if not entry:
                 st.write("Unranked")
                 return
+
             tier_div = f"{entry['tier'].title()} {entry['rank']}".strip()
             st.markdown(f"**{tier_div}**")
             c1, c2, c3 = st.columns(3)
             c1.metric("LP", entry["lp"])
             c2.metric("Winrate", f"{entry['winrate']}%")
             c3.metric("W-L", f"{entry['wins']}-{entry['losses']}")
+
+
+def render_latest_match_summary(summary):
+    participant = summary.get("participant")
+    summoner = summary.get("summoner") or {}
+    result = "Vitória" if participant.get("win") else "Derrota"
+
+    st.subheader("Resumo da partida mais recente")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Riot ID", summary["riot_id"])
+    c2.metric("Summoner Level", summoner.get("summonerLevel", "N/A"))
+    c3.metric("Resultado", result)
+
+    c4, c5, c6 = st.columns(3)
+    c4.metric("Match ID", summary["match_id"])
+    c5.metric("Champion", participant["champion"])
+    c6.metric("K/D/A", f"{participant['kills']}/{participant['deaths']}/{participant['assists']}")
+
+
+def render_recent_matches_table(match_summaries):
+    rows = []
+    for match in match_summaries:
+        duration_seconds = match.get("game_duration") or 0
+        rows.append(
+            {
+                "Resultado": "Vitória" if match["win"] else "Derrota",
+                "Champion": match["champion"],
+                "K/D/A": f"{match['kills']}/{match['deaths']}/{match['assists']}",
+                "Duração": f"{duration_seconds // 60} min",
+                "Modo/Fila": f"{match.get('game_mode', '')} / {match.get('queue_id', 'N/A')}",
+                "Match ID": match["match_id"],
+            }
+        )
+
+    st.subheader("Histórico recente")
+    st.dataframe(rows, use_container_width=True)
+
+
+def normalizar_historico_para_estatisticas(match_summaries):
+    estatisticas = []
+    for match in match_summaries:
+        estatisticas.append(
+            {
+                "champion": match["champion"],
+                "kills": match["kills"],
+                "deaths": match["deaths"],
+                "assists": match["assists"],
+                "win": match["win"],
+                "duration": (match.get("game_duration") or 0) // 60,
+            }
+        )
+    return estatisticas
+
+
+def show_riot_error(error):
+    if isinstance(error, RiotAuthenticationError):
+        st.error("Chave Riot inválida, ausente ou expirada. Verifique RIOT_API_KEY no .env.")
+    elif isinstance(error, RiotForbiddenError):
+        st.error("Acesso negado pela Riot API. A chave pode estar expirada ou sem permissão.")
+    elif isinstance(error, RiotNotFoundError):
+        st.error("Riot ID não encontrado. Verifique gameName e tagLine.")
+    elif isinstance(error, RiotRateLimitError):
+        st.warning("Rate limit da Riot atingido. Aguarde um pouco e tente novamente.")
+    elif isinstance(error, RiotTimeoutError):
+        st.warning("A Riot API demorou para responder. Tente novamente.")
+    elif isinstance(error, RiotServerError):
+        st.warning("A Riot API retornou erro temporário. Tente novamente mais tarde.")
+    elif isinstance(error, RiotApiError):
+        st.error(f"Erro ao consultar Riot API: {error}")
+    else:
+        st.error("Erro inesperado ao consultar Riot API.")
 
 
 def main():
@@ -40,70 +118,90 @@ def main():
         region_label = st.selectbox(
             "Região preferida (usada como prioridade na detecção do Elo)",
             list(PLATFORMS.keys()),
-            index=0
+            index=0,
         )
         submitted = st.form_submit_button("Buscar")
 
-    if submitted and game_name and tag:
-        with st.spinner("Buscando conta..."):
-            conta = get_account_by_riot_id(game_name, tag)
+    if not submitted:
+        return
 
-        if not conta:
-            st.error("Conta Riot não encontrada. Verifique Riot ID e Tag.")
-            return
+    if not game_name or not tag:
+        st.warning("Preencha gameName e tagLine antes de buscar.")
+        return
 
-        puuid = conta["puuid"]  # oculto para o usuário
+    try:
+        with st.spinner("Carregando resumo da Riot API..."):
+            latest_summary = get_latest_match_summary(game_name, tag, count=10, strict=True)
+    except (
+        RiotAuthenticationError,
+        RiotForbiddenError,
+        RiotNotFoundError,
+        RiotRateLimitError,
+        RiotTimeoutError,
+        RiotServerError,
+        RiotApiError,
+    ) as error:
+        show_riot_error(error)
+        return
 
-        # ===== Elo / Rank via match-v5 -> league-v4 =====
-        st.subheader("Classificação Ranqueada")
-        with st.spinner("Obtendo summonerId e plataforma sugerida pelo último match..."):
-            enc_id, platform_hint = get_encrypted_summoner_id_and_platform_hint(puuid)
+    if not latest_summary:
+        st.error("Não foi possível montar o resumo para este Riot ID.")
+        return
 
-        entries = {}
-        if not enc_id:
-            st.warning("Não consegui obter o summonerId a partir das partidas recentes.")
-        else:
-            preferred = platform_hint or PLATFORMS[region_label]
-            with st.spinner(f"Carregando Elo (prioridade: {preferred})..."):
-                platform, entries = find_platform_by_summoner_id(enc_id, preferred=preferred)
+    if not latest_summary.get("match_ids"):
+        st.warning("Nenhuma partida encontrada para este Riot ID.")
+        return
 
-        col1, col2 = st.columns(2)
-        render_rank_card(col1, "Solo/Duo", entries.get("RANKED_SOLO_5x5", {}))
-        render_rank_card(col2, "Flex", entries.get("RANKED_FLEX_SR", {}))
+    if not latest_summary.get("participant"):
+        st.warning("Não encontrei o jogador na partida mais recente retornada pela Riot.")
+        return
 
-        # ===== Painel opcional de debug =====
-        with st.expander("Debug do Elo (opcional)"):
-            if st.button("Rodar diagnóstico de plataformas"):
-                diag = probe_rank_across_platforms(puuid, game_name)
-                st.write(diag)
+    puuid = latest_summary["puuid"]
+    render_latest_match_summary(latest_summary)
 
-        # ===== Partidas e Estatísticas =====
-        with st.spinner("Carregando partidas..."):
-            estatisticas = get_last_matches_stats(puuid)
+    with st.spinner("Carregando histórico recente..."):
+        recent_matches = get_recent_match_summaries(
+            game_name,
+            tag,
+            count=10,
+            routing=None,
+            platform=latest_summary.get("region"),
+        )
 
-        if not estatisticas:
-            st.warning("Não foi possível obter estatísticas de partidas.")
-            return
+    if not recent_matches:
+        st.warning("Não foi possível carregar o histórico recente de partidas.")
+        return
 
-        medias = calcular_estatisticas(estatisticas)
-        if not medias:
-            st.error("Erro ao calcular estatísticas médias.")
-            return
+    failed_count = recent_matches[0].get("failed_count", 0)
+    if failed_count:
+        st.warning(f"{failed_count} partida(s) não puderam ser carregadas, mas o restante foi exibido.")
+    render_recent_matches_table(recent_matches)
 
-        st.subheader("Médias de desempenho")
-        exibir_medias(medias)
+    st.subheader("Classificação Ranqueada")
+    preferred = latest_summary.get("region") or PLATFORMS[region_label]
+    with st.spinner(f"Carregando Elo (prioridade: {preferred})..."):
+        entries = get_ranked_entries_by_puuid(puuid, platform=preferred)
 
-        st.subheader("Estatísticas das últimas partidas")
-        exibir_partidas(estatisticas)
+    if not entries:
+        st.info("Rank indisponível ou jogador sem filas ranqueadas recentes.")
 
-        st.subheader("Visualização Gráfica")
-        plot_kda_bar(estatisticas)
-        plot_resultados_pizza(estatisticas)
+    col1, col2 = st.columns(2)
+    render_rank_card(col1, "Solo/Duo", entries.get("RANKED_SOLO_5x5", {}))
+    render_rank_card(col2, "Flex", entries.get("RANKED_FLEX_SR", {}))
 
-        observacoes = gerar_observacoes(medias)
-        if st.button("Gerar relatório .txt"):
-            gerar_relatorio(f"{game_name}#{tag}", medias, observacoes)
-            st.success("Relatório gerado com sucesso!")
+    with st.expander("Debug do Elo (opcional)"):
+        if st.button("Rodar diagnóstico de plataformas"):
+            diag = probe_rank_across_platforms(puuid, game_name)
+            st.write(diag)
+
+    estatisticas = normalizar_historico_para_estatisticas(recent_matches)
+    medias = calcular_estatisticas(estatisticas)
+    if not medias:
+        st.error("Erro ao calcular estatísticas médias.")
+        return
+
+    st.subheader("Médias de desempenho")
+    exibir_medias(medias)
 
 
 if __name__ == "__main__":

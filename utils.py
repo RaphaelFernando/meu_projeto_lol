@@ -1,12 +1,17 @@
+import logging
 import os
 import re
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
 
 def limpar_texto(texto):
     """
     Remove emojis e caracteres não compatíveis com o formato de texto.
     """
-    return re.sub(r'[^\x00-\xFF]', '', texto)
+    return re.sub(r"[^\x00-\xFF]", "", texto)
+
 
 def gerar_observacoes(medias):
     """
@@ -37,6 +42,7 @@ def gerar_observacoes(medias):
         observacoes.append(f"Campeão mais utilizado: {medias['campeao_mais_usado']}. Pode ser sua especialidade.")
 
     return observacoes
+
 
 def gerar_relatorio(nome_jogador, estatisticas, observacoes, caminho="relatorios"):
     """
@@ -69,5 +75,5 @@ def gerar_relatorio(nome_jogador, estatisticas, observacoes, caminho="relatorios
     with open(caminho_completo, "w", encoding="utf-8") as f:
         f.write("\n".join(conteudo))
 
-    print(f"\nRelatório salvo em: {caminho_completo}")
-    return caminho_completo  # Para uso no Streamlit
+    logger.info("Relatório salvo em: %s", caminho_completo)
+    return caminho_completo

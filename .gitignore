@@ -1,5 +1,12 @@
 config.py
 .env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyc
+*.log
+matches_dump.json
 
 # Ignorar relatórios gerados automaticamente
 relatorios/

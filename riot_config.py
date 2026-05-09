@@ -1,0 +1,6 @@
+from riot.riot_config import API_KEY as RIOT_API_KEY
+from riot.riot_config import DEFAULT_REGION, DEFAULT_ROUTING, PLATFORMS, load_dotenv, validate_api_key
+
+ACCOUNT_REGION = DEFAULT_ROUTING
+MATCH_REGION = DEFAULT_ROUTING
+DEFAULT_PLATFORM = DEFAULT_REGION

@@ -1,10 +1,8 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-def exibir_partidas(estatisticas):
-    """
-    Exibe as 5 últimas partidas em uma tabela interativa no Streamlit.
-    """
+
+def formatar_partidas(estatisticas):
     partidas_formatadas = []
 
     for partida in estatisticas:
@@ -17,18 +15,26 @@ def exibir_partidas(estatisticas):
             "KDA": round((partida["kills"] + partida["assists"]) / max(partida["deaths"], 1), 2),
             "Duração (min)": partida["duration"],
             "Resultado": "Vitória" if partida["win"] else "Derrota",
-            "Modo de Jogo": partida["game_mode"]
+            "Modo de Jogo": partida["game_mode"],
         })
 
-    df = pd.DataFrame(partidas_formatadas)
+    return partidas_formatadas
+
+
+def exibir_partidas(estatisticas):
+    """
+    Exibe as partidas em uma tabela interativa no Streamlit.
+    """
+    df = pd.DataFrame(formatar_partidas(estatisticas))
     st.dataframe(df, use_container_width=True)
+
 
 def exibir_medias(medias):
     """
     Exibe as estatísticas médias do jogador no Streamlit.
     """
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.metric("Média de Kills", medias["media_kills"])
         st.metric("Média de Assists", medias["media_assists"])
@@ -40,5 +46,5 @@ def exibir_medias(medias):
 
     with col3:
         st.metric("Winrate", f"{medias['winrate']}%")
-        st.metric("Vitórias", f"{medias['vitorias']}/5")
+        st.metric("Vitórias", f"{medias['vitorias']}/{medias.get('total_partidas', 5)}")
         st.metric("Mais Jogado", medias["campeao_mais_usado"])

@@ -1,6 +1,9 @@
 from collections import Counter
 
 def calcular_estatisticas(partidas):
+    if not partidas:
+        return {}
+
     total_kills = total_deaths = total_assists = total_duration = vitorias = 0
     campeoes = []
 
@@ -27,6 +30,7 @@ def calcular_estatisticas(partidas):
         "media_assists": round(media_assists, 2),
         "media_kda": round(media_kda, 2),
         "vitorias": vitorias,
+        "total_partidas": num_partidas,
         "winrate": round((vitorias / num_partidas) * 100, 1),
         "tempo_medio": tempo_medio,
         "campeao_mais_usado": campeao_mais_usado

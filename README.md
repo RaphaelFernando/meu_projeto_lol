@@ -1,35 +1,103 @@
-# Analisador de Partidas - League of Legends
+﻿# Analisador de Partidas - League of Legends
 
-Este projeto tem como objetivo criar uma aplicação em Python que se conecta à API oficial da Riot Games para coletar dados de partidas do League of Legends e apresentar relatórios visuais e personalizados para o jogador.
+AplicaÃ§Ã£o em Python com Streamlit para consultar dados da API oficial da Riot Games, analisar partidas recentes de League of Legends e exibir metricas de desempenho.
 
-O foco está em tornar a análise de desempenho mais acessível, clara e útil para jogadores casuais, utilizando ferramentas simples e bem estruturadas.
+## Arquitetura
 
-# Funcionalidades
+- `main.py`: entrypoint oficial da aplicaÃ§Ã£o Streamlit.
+- `streamlit_app.py`: wrapper de compatibilidade que chama `main.main()`.
+- `api_handler.py`: fachada de compatibilidade para imports antigos.
+- `riot/riot_config.py`: carrega `.env`, valida `RIOT_API_KEY` e expÃµe regiÃ£o/roteamento padrÃ£o.
+- `riot/riot_client.py`: cliente HTTP centralizado com `requests.Session`, timeout, retries, logging e tratamento de status HTTP.
+- `riot/rate_limiter.py`: rate limit local simples para 20 req/s e 100 req/2min.
+- `riot/endpoints.py`: URLs centralizadas da Riot API.
+- `riot/riot_services.py`: funÃ§Ãµes de alto nÃ­vel para Account, Match, Summoner, Ranked, Mastery, Spectator e Champion Rotation.
+- `processamento.py`: cÃ¡lculo de estatÃ­sticas agregadas.
+- `exibicao.py`: renderizacao das metricas da interface.
+- `utils.py`: observaÃ§Ãµes automÃ¡ticas e geraÃ§Ã£o de relatÃ³rio.
+- `scripts/`: scripts exploratÃ³rios e utilitÃ¡rios manuais.
+- `tests/`: testes automatizados.
 
-1. Consulta de invocador pelo nome
+Os mÃ³dulos antigos `riot_config.py`, `riot_client.py`, `match_service.py` e `rank_service.py` permanecem como wrappers de compatibilidade.
 
-2. Coleta de dados de partidas via API da Riot
+## ConfiguraÃ§Ã£o Da Chave Riot
 
-3. Organização e estruturação dos dados
+Nunca coloque uma chave real no cÃ³digo, README, testes ou scripts.
 
-4. Geração de gráficos de desempenho (ex: KDA, tempo de jogo, vitórias)
+Configure a variÃ¡vel de ambiente `RIOT_API_KEY` antes de rodar a aplicaÃ§Ã£o:
 
-5. Interface simples para visualização das análises
+```powershell
+$env:RIOT_API_KEY="sua-chave-riot"
+$env:RIOT_REGION="br1"
+$env:RIOT_ROUTING="americas"
+```
 
-# Preview
+Como alternativa local, copie `.env.example` para `.env` e preencha os valores:
 
-![Preview](ScreenShots/home.png)
+```powershell
+Copy-Item .env.example .env
+```
 
-# Tecnologias e ferramentas utilizadas
+Exemplo de `.env`:
 
-1. Python 3.12
+```dotenv
+RIOT_API_KEY=
+RIOT_REGION=br1
+RIOT_ROUTING=americas
+```
 
-2. requests
+O arquivo `.env` estÃ¡ no `.gitignore` e nÃ£o deve ser versionado.
 
-3. matplotlib
+## InstalaÃ§Ã£o
 
-4. seaborn
+Crie e ative a venv:
 
-5. pandas
+```powershell
+python -m venv .venv
+. .\.venv\Scripts\Activate.ps1
+```
 
-6. API oficial da Riot Games
+Instale as dependÃªncias:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+## ExecuÃ§Ã£o
+
+Rode a entrypoint oficial:
+
+```powershell
+python -m streamlit run main.py
+```
+
+O arquivo `streamlit_app.py` continua existindo apenas para compatibilidade.
+
+## Testes
+
+Execute a suÃ­te automatizada:
+
+```powershell
+python -m unittest discover -s tests
+```
+
+Smoke test real da Riot API:
+
+```powershell
+python scripts/smoke_test_riot.py
+```
+
+Opcionalmente, compile os mÃ³dulos para validar sintaxe/imports:
+
+```powershell
+python -m py_compile api_handler.py riot\riot_config.py riot\riot_client.py riot\riot_services.py riot\rate_limiter.py riot\exceptions.py riot\endpoints.py processamento.py exibicao.py utils.py main.py streamlit_app.py entrada.py scripts\compare.py scripts\matchid.py
+```
+
+## Troubleshooting
+
+- `RIOT_API_KEY nÃ£o configurada`: defina a variÃ¡vel de ambiente ou crie `.env` a partir de `.env.example`.
+- `401` ou `403`: verifique se a chave estÃ¡ ativa e se nÃ£o expirou.
+- `404`: o recurso nÃ£o foi encontrado, geralmente por Riot ID, PUUID ou match id incorretos.
+- `429`: a Riot limitou as requisiÃ§Ãµes. O cliente aplica retry e tambÃ©m hÃ¡ rate limit local.
+- `500+`: falha temporÃ¡ria da Riot API. O cliente tenta novamente antes de retornar erro.
+
