@@ -108,7 +108,7 @@ Fluxo principal:
 UI Streamlit -> api_handler.py -> riot_services.py -> riot_client.py -> Riot API
 ```
 
-A UI chama a fachada `api_handler.py` para manter compatibilidade. A fachada delega para `riot/riot_services.py`, que concentra as regras de uso da Riot API. As chamadas HTTP passam por `riot/riot_client.py`, onde ficam autenticação, retries, timeout, logging e tratamento de erros.
+A UI chama a fachada `api_handler.py` para manter compatibilidade. A fachada delega para `riot/riot_services.py`, que concentra as regras de uso da Riot API. As chamadas HTTP passam por `riot/riot_client.py`, onde ficam autenticacao, retries, timeout, logging e tratamento de erros.
 
 O historico recente e as medias da tela usam a mesma fonte de dados para evitar chamadas duplicadas e divergencia visual.
 
@@ -136,3 +136,4 @@ Adicione screenshots futuras nesta secao.
 - Recomendacoes de champion
 - Deploy da aplicacao
 - Analise de timeline das partidas
+
