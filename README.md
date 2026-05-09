@@ -1,44 +1,68 @@
-﻿# Analisador de Partidas - League of Legends
+# Meu Projeto LoL
 
-AplicaÃ§Ã£o em Python com Streamlit para consultar dados da API oficial da Riot Games, analisar partidas recentes de League of Legends e exibir metricas de desempenho.
+Aplicacao em Python com Streamlit para consultar dados da Riot API, exibir o historico recente de partidas de League of Legends e resumir metricas de desempenho do jogador.
 
-## Arquitetura
+## Features
 
-- `main.py`: entrypoint oficial da aplicaÃ§Ã£o Streamlit.
-- `streamlit_app.py`: wrapper de compatibilidade que chama `main.main()`.
-- `api_handler.py`: fachada de compatibilidade para imports antigos.
-- `riot/riot_config.py`: carrega `.env`, valida `RIOT_API_KEY` e expÃµe regiÃ£o/roteamento padrÃ£o.
-- `riot/riot_client.py`: cliente HTTP centralizado com `requests.Session`, timeout, retries, logging e tratamento de status HTTP.
-- `riot/rate_limiter.py`: rate limit local simples para 20 req/s e 100 req/2min.
+- Consulta por Riot ID (`gameName` + `tagLine`)
+- Historico recente de partidas
+- Estatisticas agregadas de desempenho
+- Informacoes ranqueadas
+- Integracao com Riot API
+- UI em Streamlit
+- Testes automatizados
+
+## Stack
+
+- Python
+- Streamlit
+- Riot API
+- requests
+- dotenv via arquivo `.env`
+- unittest
+
+## Estrutura Do Projeto
+
+- `main.py`: entrypoint oficial da aplicacao Streamlit.
+- `streamlit_app.py`: wrapper de compatibilidade para executar `main.main()`.
+- `api_handler.py`: fachada de compatibilidade para imports antigos; delega para a camada `riot/`.
+- `riot/`: pacote principal de integracao com a Riot API.
+- `riot/riot_config.py`: carrega `.env`, le configuracoes e valida `RIOT_API_KEY`.
+- `riot/riot_client.py`: cliente HTTP centralizado com `requests.Session`, timeout, retries, logging e tratamento de erros.
+- `riot/riot_services.py`: servicos de alto nivel para Account, Match, Summoner, Ranked e historico recente.
 - `riot/endpoints.py`: URLs centralizadas da Riot API.
-- `riot/riot_services.py`: funÃ§Ãµes de alto nÃ­vel para Account, Match, Summoner, Ranked, Mastery, Spectator e Champion Rotation.
-- `processamento.py`: cÃ¡lculo de estatÃ­sticas agregadas.
-- `exibicao.py`: renderizacao das metricas da interface.
-- `utils.py`: observaÃ§Ãµes automÃ¡ticas e geraÃ§Ã£o de relatÃ³rio.
-- `scripts/`: scripts exploratÃ³rios e utilitÃ¡rios manuais.
-- `tests/`: testes automatizados.
+- `riot/rate_limiter.py`: controle local simples de rate limit.
+- `riot/exceptions.py`: excecoes tipadas para erros da Riot API.
+- `tests/`: testes automatizados com `unittest`.
+- `scripts/`: scripts auxiliares, incluindo smoke test real da Riot API.
 
-Os mÃ³dulos antigos `riot_config.py`, `riot_client.py`, `match_service.py` e `rank_service.py` permanecem como wrappers de compatibilidade.
+## Instalacao
 
-## ConfiguraÃ§Ã£o Da Chave Riot
-
-Nunca coloque uma chave real no cÃ³digo, README, testes ou scripts.
-
-Configure a variÃ¡vel de ambiente `RIOT_API_KEY` antes de rodar a aplicaÃ§Ã£o:
+Crie a virtualenv:
 
 ```powershell
-$env:RIOT_API_KEY="sua-chave-riot"
-$env:RIOT_REGION="br1"
-$env:RIOT_ROUTING="americas"
+python -m venv .venv
 ```
 
-Como alternativa local, copie `.env.example` para `.env` e preencha os valores:
+Ative a virtualenv:
+
+```powershell
+. .\.venv\Scripts\Activate.ps1
+```
+
+Instale as dependencias:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Crie o arquivo `.env` a partir do exemplo:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Exemplo de `.env`:
+Preencha o `.env` com seus valores locais:
 
 ```dotenv
 RIOT_API_KEY=
@@ -46,39 +70,20 @@ RIOT_REGION=br1
 RIOT_ROUTING=americas
 ```
 
-O arquivo `.env` estÃ¡ no `.gitignore` e nÃ£o deve ser versionado.
+Nunca commite o arquivo `.env`.
 
-## InstalaÃ§Ã£o
+## Execucao
 
-Crie e ative a venv:
+Aplicacao principal:
 
 ```powershell
-python -m venv .venv
-. .\.venv\Scripts\Activate.ps1
+python main.py
 ```
 
-Instale as dependÃªncias:
+Interface Streamlit:
 
 ```powershell
-python -m pip install -r requirements.txt
-```
-
-## ExecuÃ§Ã£o
-
-Rode a entrypoint oficial:
-
-```powershell
-python -m streamlit run main.py
-```
-
-O arquivo `streamlit_app.py` continua existindo apenas para compatibilidade.
-
-## Testes
-
-Execute a suÃ­te automatizada:
-
-```powershell
-python -m unittest discover -s tests
+streamlit run streamlit_app.py
 ```
 
 Smoke test real da Riot API:
@@ -87,17 +92,47 @@ Smoke test real da Riot API:
 python scripts/smoke_test_riot.py
 ```
 
-Opcionalmente, compile os mÃ³dulos para validar sintaxe/imports:
+## Testes
+
+Execute a suite automatizada:
 
 ```powershell
-python -m py_compile api_handler.py riot\riot_config.py riot\riot_client.py riot\riot_services.py riot\rate_limiter.py riot\exceptions.py riot\endpoints.py processamento.py exibicao.py utils.py main.py streamlit_app.py entrada.py scripts\compare.py scripts\matchid.py
+python -m unittest discover -s tests
 ```
 
-## Troubleshooting
+## Arquitetura
 
-- `RIOT_API_KEY nÃ£o configurada`: defina a variÃ¡vel de ambiente ou crie `.env` a partir de `.env.example`.
-- `401` ou `403`: verifique se a chave estÃ¡ ativa e se nÃ£o expirou.
-- `404`: o recurso nÃ£o foi encontrado, geralmente por Riot ID, PUUID ou match id incorretos.
-- `429`: a Riot limitou as requisiÃ§Ãµes. O cliente aplica retry e tambÃ©m hÃ¡ rate limit local.
-- `500+`: falha temporÃ¡ria da Riot API. O cliente tenta novamente antes de retornar erro.
+Fluxo principal:
 
+```text
+UI Streamlit -> api_handler.py -> riot_services.py -> riot_client.py -> Riot API
+```
+
+A UI chama a fachada `api_handler.py` para manter compatibilidade. A fachada delega para `riot/riot_services.py`, que concentra as regras de uso da Riot API. As chamadas HTTP passam por `riot/riot_client.py`, onde ficam autenticação, retries, timeout, logging e tratamento de erros.
+
+O historico recente e as medias da tela usam a mesma fonte de dados para evitar chamadas duplicadas e divergencia visual.
+
+## Seguranca
+
+- `.env` esta no `.gitignore`.
+- A API key nao deve ser commitada.
+- A API key nao e exibida em logs ou na interface.
+- O cliente Riot aplica rate limiting local.
+- O cliente Riot aplica retries para falhas temporarias e `429`.
+- Erros como `401`, `403`, `404`, `429` e `500+` sao tratados com excecoes especificas.
+
+## Screenshots
+
+Adicione screenshots futuras nesta secao.
+
+```markdown
+![Dashboard](ScreenShots/home.png)
+```
+
+## Roadmap
+
+- Cache local para reduzir chamadas repetidas
+- Chamadas async para carregar partidas em paralelo
+- Recomendacoes de champion
+- Deploy da aplicacao
+- Analise de timeline das partidas
